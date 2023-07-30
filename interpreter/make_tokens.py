@@ -15,7 +15,7 @@ class Tokenizer:
     # boolean
     booleans = {"true", "false"}
     boolean_operators = {"and", "or", "not"}
-    comparisons = {">", "<", ">=", "<=", "!=", "=="}
+    comparators = {">", "<", ">=", "<=", "!=", "=="}
 
     # built-in types
     types = {"String", "int", "float", "Array", "Set", "Dict"}
@@ -39,7 +39,7 @@ class Tokenizer:
             elif self.char in Tokenizer.digits:
                 self.tokenize_number()
             
-            elif self.char in Tokenizer.operators:
+            elif self.char in Tokenizer.operators or self.char in Tokenizer.comparators:
                 self.tokenize_operator()
 
             elif self.char in Tokenizer.safe_chars:
@@ -73,12 +73,12 @@ class Tokenizer:
         operator = self.char
         self.forward()
 
-        if (operator + self.char) in self.comparisons: # some boolean operators are two-long
-            self.tokens.append(Boolean_Operator(operator + self.char)) 
+        if (operator + self.char) in self.comparators: # some boolean operators are two-long
+            self.tokens.append(Comparator(operator + self.char)) 
             self.forward() # have to go forward because this char was just used
 
-        elif operator in self.comparisons:
-            self.tokens.append(Boolean_Operator(operator))
+        elif operator in self.comparators:
+            self.tokens.append(Comparator(operator))
             # dont go forward because it wasn't used
         
         else:

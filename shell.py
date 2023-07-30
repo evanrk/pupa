@@ -50,5 +50,5 @@ print(tokens)
 tokens_tree = Parser(tokens).parse()
 print(tokens_tree)
 
-# output = Interpreter(tokens_tree).interpret()
-# print(output)
+output = Interpreter(tokens_tree).interpret()
+print(output)

@@ -1,5 +1,5 @@
 class Token:
-    debug_values = False
+    debug_token_type = True
 
     def __init__(self, value, type) -> None:
         self.value = value
@@ -7,7 +7,7 @@ class Token:
     
     def __repr__(self) -> str:
         
-        return (f"{self.type}: " if Token.debug_values else "") + f"{self.value}"
+        return (f"{self.type}: " if Token.debug_token_type else "") + f"{self.value}"
 
  
 # types
@@ -44,6 +44,10 @@ class Operator(Token):
 class Boolean_Operator(Token):
     def __init__(self, value) -> None:
         super().__init__(value, "boolean operator")
+
+class Comparator(Token):
+    def __init__(self, value) -> None:
+        super().__init__(value, "comparator")
 
 
 # words
