@@ -12,6 +12,7 @@ class Parser:
         #     return self.parse_equals()
         return self.parse_equals()
         
+    # examples of parsing tree
     # 5 + 5 * 5 + 5
     
     #     +
@@ -47,29 +48,29 @@ class Parser:
             declarator = self.current_token
             self.forward()
 
-        output = self.parse_binary_token_level_value({"="}, self.parse_boolean_operator)
+        output = self.parse_binary_level_value({"="}, self.parse_boolean_operator)
 
         # if there is a declarator then it will put it in front, where it should, if its not, then it puts nothing
         return output if not declarator else [declarator] + output
 
     
     def parse_boolean_operator(self):
-        return self.parse_binary_token_level_value({"and", "or"}, self.parse_comparator)
+        return self.parse_binary_level_value({"and", "or"}, self.parse_comparator)
 
 
     def parse_comparator(self):
         """parses the comparators (<, >, etc.)"""
-        return self.parse_binary_token_level_type("comparator", self.parse_addition_and_subtraction)
+        return self.parse_binary_level_type("comparator", self.parse_addition_and_subtraction)
 
 
     def parse_addition_and_subtraction(self):
         """parses addition and subtraction operators"""
-        return self.parse_binary_token_level_value({"+", "-"}, self.parse_multiplication_and_division)
+        return self.parse_binary_level_value({"+", "-"}, self.parse_multiplication_and_division)
     
 
     def parse_multiplication_and_division(self):
         """parses multiplication and division operators"""
-        return self.parse_binary_token_level_value({"*", "/"}, self.read_current_token)
+        return self.parse_binary_level_value({"*", "/"}, self.read_current_token)
 
 
     def read_current_token(self):
@@ -84,14 +85,21 @@ class Parser:
             # skips opening parentheses
             self.forward()
             # creates new part because its essentially what a parentheses does
-            token = self.parse_equals()
+            token = self.parse_equals() # TODO: fix later
             # skips closing parentheses
             self.forward()
+
+        elif self.current_token.value in {"+", "-", "not"}:
+            operator = self.current_token
+            self.forward()
+            output = self.parse_equals() # TODO: fix later
+            return [operator, output]
 
         return token
     
     
-    def parse_binary_token_level_value(self, parse_values, output_func):
+    # helper funcs:
+    def parse_binary_level_value(self, parse_values, output_func):
         """parses a binary token based on the operator's value"""
         # parses left side
         left_side = output_func()
@@ -108,7 +116,7 @@ class Parser:
         return left_side
 
     # is separate from the other func for debugging
-    def parse_binary_token_level_type(self, parse_type, output_func):
+    def parse_binary_level_type(self, parse_type, output_func):
         """parses a binary token based on the operator's type"""
         # parses left side   
         left_side = output_func()
@@ -123,7 +131,7 @@ class Parser:
             left_side = [left_side, operator, right_side] # called left_side for conciseness; should be called output
         
         return left_side
-
+            
 
     def forward(self):
         """moves the index forward and updates the character if it can"""

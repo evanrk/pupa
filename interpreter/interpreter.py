@@ -1,9 +1,10 @@
-from interpreter.tokens_classes import *
+from interpreter.data.tokens_classes import *
+from interpreter.data.variables import *
 
 class Interpreter:
-    def __init__(self, tokens_tree):
+    def __init__(self, tokens_tree, data):
         self.tokens_tree = tokens_tree
-    
+        self.data = data
 
     def interpret(self, tokens_tree=None):
         if not tokens_tree:
@@ -11,61 +12,135 @@ class Interpreter:
 
         
         if isinstance(tokens_tree, list):
-            if len(tokens_tree) == 3:
-                # gets the left and right tokens with recursion
-                left_token = self.interpret(tokens_tree=tokens_tree[0])
-                right_token = self.interpret(tokens_tree=tokens_tree[2])
-                
+            # handle non-constant variable
+            if tokens_tree[0].value == "let":
+                variable = tokens_tree[1]
+                right_side = self.interpret(tokens_tree=tokens_tree[3])
+
+                self.data.add_non_constant_variable(variable.value, right_side, right_side.type)
+                return self.data # TODO: change to not print out
+
+            # handle constant variable
+            elif tokens_tree[0].value == "const":
+                variable = tokens_tree[1]
+                right_side = self.interpret(tokens_tree=tokens_tree[3])
+
+                self.data.add_constant_variable(variable.value, right_side, right_side.type)
+                return self.data # TODO: change to not print out
+
+            elif len(tokens_tree) == 2:
+                # unary evaluation:
+
+                operator = tokens_tree[0]
+                # gets the token next to the operator with recursion
+                right_side = self.interpret(tokens_tree=tokens_tree[1])
+
+                right_type = right_side.type
+                right_value = getattr(self, f"read_{right_type}")(right_side.value)
+
+                if operator.type == "operator":
+                    
+                    # gets the type of the output
+                    if right_type == "int":
+                        output_type = Integer
+                    elif right_type == "float":
+                        output_type = Float
+                    elif right_type == "bool":
+                        output_type = Boolean
+                    
+                    # processes the output
+                    if operator.value == "+":
+                        if output_type in {Integer, Float}:
+                            output = right_value
+                        elif output_type == Boolean:
+                            output = right_value
+
+                    elif operator.value == "-":
+                        if output_type in {Integer, Float}:
+                            output = -right_value
+                        elif output_type == Boolean:
+                            output = not right_value
+                    
+                elif operator.value == "not":
+                    output = not right_value
+
+
+                # handle switching type back to token_type
+                if output_type == Boolean:
+                    if output == True:
+                        return output_type("true")
+                    else:
+                        return output_type("false")
+                else:
+                    return output_type(output)                
+
+
+            elif len(tokens_tree) == 3:
                 # operator is static and doesn't need recursion
                 operator = tokens_tree[1]
 
+                right_token = self.interpret(tokens_tree=tokens_tree[2])
+                
+                # the left token is a special case because of the equal sign
+                # if there's an equal sign, you don't want to compute what the variable is (don't do recursion)
+                if operator.value == "=":
+                    self.data.change_variable(tokens_tree[0].value, right_token)
+                    return self.data # TODO: change to not print out
+                else:
+                    # gets the left and right tokens with recursion
+                    left_token = self.interpret(tokens_tree=tokens_tree[0])
+
+                
                 # gets the left and right token types
                 left_type = left_token.type
                 right_type = right_token.type
+
 
                 # gets the left and right value in python builtin classes
                 left_value = getattr(self, f"read_{left_type}")(left_token.value)
                 right_value = getattr(self, f"read_{right_type}")(right_token.value)
 
 
-                # no other way to do it without a bunch of if statements
+
+                # no other way to do it without a bunch of if statements :(
 
                 # add
                 if operator.value == "+":
                     if left_type == "int" and right_type == "int":
-                        token_type = Integer
+                        output_type = Integer
                     else:
-                        token_type = Float
+                        output_type = Float
                     
                     output = left_value + right_value
                 
                 # subtract
                 elif operator.value == "-":
                     if left_type == "int" and right_type == "int":
-                        token_type = Integer
+                        output_type = Integer
                     else:
-                        token_type = Float
+                        output_type = Float
                     
                     output = left_value - right_value
                 
                 # multiply
                 elif operator.value == "*":
                     if left_type == "int" and right_type == "int":
-                        token_type = Integer
+                        output_type = Integer
                     else:
-                        token_type = Float
+                        output_type = Float
                     
                     output = left_value * right_value
                 
                 # divide
                 elif operator.value == "/":
-                    token_type = Float
+                    output_type = Float
                     
                     output = left_value / right_value
                 
+
                 # all comparators have the same output type
                 elif operator.type == "comparator":
-                    token_type = Boolean
+                    output_type = Boolean
                     
                     # less than
                     if operator.value == "<":
@@ -93,32 +168,31 @@ class Interpreter:
                     
                 # and
                 elif operator.value == "and":
-                    token_type = Boolean
+                    output_type = Boolean
                     output = left_value and right_value
                 # or
                 elif operator.value == "or":
-                    token_type = Boolean
+                    output_type = Boolean
                     output = left_value or right_value
 
                 # if its not in here, there's a problem
                 else:
                     raise SyntaxError(f"{operator} not handled")
 
-                if token_type == Boolean:
+                # handle switching type back to token_type
+                if output_type == Boolean:
                     if output == True:
-                        return token_type("true")
+                        return output_type("true")
                     else:
-                        return token_type("false")
+                        return output_type("false")
                 else:
-                    return token_type(output)
-
-                # if operator.value == "/":
-                #     return Float(output)
-                # else:    
-                #     return Integer(output) if "int" in {left_token.type, right_token.type} else Float(output)
+                    return output_type(output)
                 
         
         else:
+            if tokens_tree.type == "variable":
+                return self.read_variable(tokens_tree.value)
+
             return tokens_tree
                 
         
@@ -139,8 +213,9 @@ class Interpreter:
             raise ValueError()
 
     def read_variable(self, value):
-        pass
-    
+        data = self.data.get(value)
+        return data
+
     def read_string(self, value):
         return str(value)
     

@@ -1,4 +1,4 @@
-from interpreter.tokens_classes import *
+from interpreter.data.tokens_classes import *
 
 class Tokenizer:
     # basic chars

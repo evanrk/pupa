@@ -1,37 +1,41 @@
 class Token:
-    debug_token_type = False
+    debug_token_type = True
 
     def __init__(self, value, type) -> None:
         self.value = value
         self.type = type
     
-    def __repr__(self) -> str:
-        
+    def __repr__(self) -> str:    
         return (f"{self.type}: " if Token.debug_token_type else "") + f"{self.value}"
 
  
+class Type(Token):
+    def __init__(self, value, type) -> None:
+        super().__init__(value, type)
+
+
 # types
-class Integer(Token):
+class Integer(Type):
     def __init__(self, value) -> None:
         super().__init__(value, "int")
 
-class Float(Token):
+class Float(Type):
     def __init__(self, value) -> None:
         super().__init__(value, "float")
 
-class String(Token):
+class String(Type):
     def __init__(self, value) -> None:
         super().__init__(value, "string")
 
-class Boolean(Token):
+class Boolean(Type):
     def __init__(self, value) -> None:
         super().__init__(value, "bool")
 
-class List(Token):
+class List(Type):
     def __init__(self, value) -> None:
         super().__init__(value, "list")
 
-class Dict(Token):
+class Dict(Type):
     def __init__(self, value) -> None:
         super().__init__(value, "dict")
 
