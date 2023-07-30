@@ -43,70 +43,15 @@ class Parser:
             declarator = self.current_token
             self.forward()
 
-         # parses the left side
-        left_side = self.parse_addition_and_subtraction()
+        return self.parse_binary_token_level({"="}, self.parse_addition_and_subtraction)
 
-        # while loop handles consecutive operations
-        while self.current_token.value == "=":
-            operator = self.current_token
-            self.forward()
-
-            # parses the right side
-            right_side = self.parse_addition_and_subtraction()
-            
-            left_side = [declarator, left_side, operator, right_side] # called left_side for conciseness; should be called output
-        
-        return left_side
-
-    # def parse_comparison(self):
-    #     # parses the left side
-    #     left_side = self.parse_multiplication_and_division()
-
-    #     # while loop handles consecutive operations
-    #     while self.current_token.value in {"+", "-"}:
-    #         operator = self.current_token
-    #         self.forward()
-
-    #         # parses the right side
-    #         right_side = self.parse_multiplication_and_division()
-            
-    #         left_side = [left_side, operator, right_side] # called left_side for conciseness; should be called output
-        
-    #     return left_side
 
     def parse_addition_and_subtraction(self):
-
-        # parses the left side
-        left_side = self.parse_multiplication_and_division()
-
-        # while loop handles consecutive operations
-        while self.current_token.value in {"+", "-"}:
-            operator = self.current_token
-            self.forward()
-
-            # parses the right side
-            right_side = self.parse_multiplication_and_division()
-            
-            left_side = [left_side, operator, right_side] # called left_side for conciseness; should be called output
-        
-        return left_side
+        return self.parse_binary_token_level({"+", "-"}, self.parse_multiplication_and_division)
     
 
     def parse_multiplication_and_division(self):
-        # parses the left side
-        left_side = self.read_current_token()
-
-        # while loop also handles consecutive operations
-        while self.current_token.value in {"*", "/"}:
-            operator = self.current_token
-            self.forward()
-
-            # parses the right side
-            right_side = self.read_current_token()
-            
-            left_side = [left_side, operator, right_side] # called left_side for conciseness; should be called output
-    
-        return left_side
+        return self.parse_binary_token_level({"*", "/"}, self.read_current_token)
 
 
     def read_current_token(self):
@@ -118,7 +63,7 @@ class Parser:
             # skips opening parentheses
             self.forward()
             # creates new part because its essentially what a parentheses does
-            token = self.parse_addition_and_subtraction()
+            token = self.parse_equals()
             # skips closing parentheses
             self.forward()
 
