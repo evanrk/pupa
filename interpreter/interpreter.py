@@ -102,10 +102,15 @@ class Interpreter:
 
                 # if its not in here, there's a problem
                 else:
-                    print(operator)
-                    raise SyntaxError()
+                    raise SyntaxError(f"{operator} not handled")
 
-                return token_type(output)
+                if token_type == Boolean:
+                    if output == True:
+                        return token_type("true")
+                    else:
+                        return token_type("false")
+                else:
+                    return token_type(output)
 
                 # if operator.value == "/":
                 #     return Float(output)

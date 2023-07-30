@@ -1,5 +1,5 @@
 class Token:
-    debug_token_type = True
+    debug_token_type = False
 
     def __init__(self, value, type) -> None:
         self.value = value

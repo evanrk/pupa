@@ -36,16 +36,25 @@ class Parser:
     # IMPORTANT:
     # order of operations goes from bottom as most important and top as least important
 
-
     def parse_equals(self):
         """parses the let and const keywords and the equal sign"""
         # NOTE: variable declaration should always be in the beginning of a line
 
+        declarator = None
+
+        # gets the declarator if there is one
         if self.current_token.value in {"let", "const"}:
             declarator = self.current_token
             self.forward()
 
-        return self.parse_binary_token_level_value({"="}, self.parse_comparator)
+        output = self.parse_binary_token_level_value({"="}, self.parse_boolean_operator)
+
+        # if there is a declarator then it will put it in front, where it should, if its not, then it puts nothing
+        return output if not declarator else [declarator] + output
+
+    
+    def parse_boolean_operator(self):
+        return self.parse_binary_token_level_value({"and", "or"}, self.parse_comparator)
 
 
     def parse_comparator(self):
@@ -64,8 +73,7 @@ class Parser:
 
 
     def read_current_token(self):
-        """reads and returns the current token"""
-        
+        """reads and returns the current token"""    
         # handles token
         if self.current_token.type in {"int", "float", "variable", "bool"}: # or self.current_token.value in {"let", "const"}
             token = self.current_token
@@ -84,6 +92,7 @@ class Parser:
     
     
     def parse_binary_token_level_value(self, parse_values, output_func):
+        """parses a binary token based on the operator's value"""
         # parses left side
         left_side = output_func()
 
@@ -100,6 +109,7 @@ class Parser:
 
     # is separate from the other func for debugging
     def parse_binary_token_level_type(self, parse_type, output_func):
+        """parses a binary token based on the operator's type"""
         # parses left side   
         left_side = output_func()
 
@@ -116,6 +126,7 @@ class Parser:
 
 
     def forward(self):
+        """moves the index forward and updates the character if it can"""
         self.index += 1
         if self.index < len(self.tokens):
             self.current_token = self.tokens[self.index]
