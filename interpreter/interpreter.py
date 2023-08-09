@@ -9,24 +9,37 @@ class Interpreter:
     def interpret(self, tokens_tree=None):
         if not tokens_tree:
             tokens_tree = self.tokens_tree
-
         
         if isinstance(tokens_tree, list):
-            # handle non-constant variable
-            if tokens_tree[0].value == "let":
-                variable = tokens_tree[1]
-                right_side = self.interpret(tokens_tree=tokens_tree[3])
+            # handle if condition
+            if isinstance(tokens_tree[0], (Variable_Declarator, Reserved)):    
+                if tokens_tree[0].value == "if":
+                    condition = self.interpret(tokens_tree=tokens_tree[1])
+                    condition_value = getattr(self, f"read_{condition.type}")(condition.value)
+                    
+                    if condition.type == "bool":
+                        if condition_value == True:   
+                            return self.interpret(tokens_tree=tokens_tree[2])
+                        # elif condition_value == False:
+                        #     return self.interpret(tokens_tree=tokens_tree[3:])
 
-                self.data.add_non_constant_variable(variable.value, right_side, right_side.type)
-                return self.data # TODO: change to not print out
 
-            # handle constant variable
-            elif tokens_tree[0].value == "const":
-                variable = tokens_tree[1]
-                right_side = self.interpret(tokens_tree=tokens_tree[3])
+                # handle non-constant variable
+                elif tokens_tree[0].value == "let":
+                    variable = tokens_tree[1]
+                    right_side = self.interpret(tokens_tree=tokens_tree[3])
 
-                self.data.add_constant_variable(variable.value, right_side, right_side.type)
-                return self.data # TODO: change to not print out
+                    self.data.add_non_constant_variable(variable.value, right_side, right_side.type)
+                    return self.data # TODO: change to not print out
+
+                # handle constant variable
+                elif tokens_tree[0].value == "const":
+                    variable = tokens_tree[1]
+                    right_side = self.interpret(tokens_tree=tokens_tree[3])
+
+                    self.data.add_constant_variable(variable.value, right_side, right_side.type)
+                    return self.data # TODO: change to not print out
+
 
             elif len(tokens_tree) == 2:
                 # unary evaluation:

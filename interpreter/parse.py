@@ -10,7 +10,7 @@ class Parser:
     def parse(self):
         # if self.current_token.type in {"int", "float", "operator", "variable"}:
         #     return self.parse_equals()
-        return self.parse_equals()
+        return self.parse_block_token()
         
     # examples of parsing tree
     # 5 + 5 * 5 + 5
@@ -36,6 +36,37 @@ class Parser:
 
     # IMPORTANT:
     # order of operations goes from bottom as most important and top as least important
+
+    def parse_block_token(self):
+        """parses block tokens like if, while, for, etc."""
+
+        blocks = []
+        if self.current_token.value in ("if", "while", "elif", "else"):
+            while self.current_token.value in {"if", "while", "elif"}:
+                keyword = self.current_token
+                # skips the keyword because it's already been grabbed
+                self.forward()
+            
+                blocks.extend([keyword] + self.parse_binary_level_value("{", self.parse_block_token, return_operator=False))
+                # have to skip the outer }
+                self.forward()
+            
+            if self.current_token.value == "else":
+                keyword = self.current_token
+                # skips the keyword because it's already been grabbed
+                self.forward()
+                
+                # skip the {
+                self.forward()
+
+                blocks.extend([keyword] + [self.parse_block_token()])
+                # have to skip the outer }
+                self.forward()
+
+        else:
+            return self.parse_equals()
+    
+        return blocks
 
     def parse_equals(self):
         """parses the let and const keywords and the equal sign"""
@@ -81,11 +112,11 @@ class Parser:
             self.forward()
 
         # handles parentheses
-        elif self.current_token.value == "(":
+        elif self.current_token.value in {"("}:
             # skips opening parentheses
             self.forward()
             # creates new part because its essentially what a parentheses does
-            token = self.parse_equals() # TODO: fix later
+            token = self.parse_block_token() # TODO: fix later
             # skips closing parentheses
             self.forward()
 
@@ -99,7 +130,7 @@ class Parser:
     
     
     # helper funcs:
-    def parse_binary_level_value(self, parse_values, output_func):
+    def parse_binary_level_value(self, parse_values, output_func, return_operator=True):
         """parses a binary token based on the operator's value"""
         # parses left side
         left_side = output_func()
@@ -111,12 +142,13 @@ class Parser:
             # parses right_side
             right_side = output_func()
             # output  
-            left_side = [left_side, operator, right_side] # called left_side for conciseness; should be called output
+            # called left_side for conciseness; should be called output
+            left_side = [left_side, operator, right_side] if return_operator else [left_side, right_side]
         
         return left_side
 
     # is separate from the other func for debugging
-    def parse_binary_level_type(self, parse_type, output_func):
+    def parse_binary_level_type(self, parse_type, output_func, return_operator=True):
         """parses a binary token based on the operator's type"""
         # parses left side   
         left_side = output_func()
@@ -128,7 +160,8 @@ class Parser:
             # parses right_side
             right_side = output_func()
             # output  
-            left_side = [left_side, operator, right_side] # called left_side for conciseness; should be called output
+            # called left_side for conciseness; should be called output
+            left_side = [left_side, operator, right_side] if return_operator else [left_side, right_side]
         
         return left_side
             

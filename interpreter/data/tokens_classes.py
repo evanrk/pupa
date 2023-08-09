@@ -1,5 +1,5 @@
 class Token:
-    debug_token_type = True
+    debug_token_type = False
 
     def __init__(self, value, type) -> None:
         self.value = value
@@ -59,6 +59,16 @@ class Variable(Token):
     def __init__(self, value) -> None:
         super().__init__(value, "variable")
 
+class Variable_Declarator(Token):
+    def __init__(self, value) -> None:
+        super().__init__(value, "declarator")
+
 class Reserved(Token):
     def __init__(self, value) -> None:
         super().__init__(value, "reserved")
+
+
+# break chars
+class Break_Character(Token):
+    def __init__(self, value) -> None:
+        super().__init__(value, "break character")

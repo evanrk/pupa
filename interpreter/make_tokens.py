@@ -36,10 +36,14 @@ class Tokenizer:
             if self.char in self.skip_chars:
                 self.forward()
             
+            elif self.char in self.break_chars:
+                self.tokens.append(Break_Character(self.char))
+                self.forward()
+
             elif self.char in Tokenizer.digits:
                 self.tokenize_number()
             
-            elif self.char in Tokenizer.operators or self.char in Tokenizer.comparators:
+            elif self.char in Tokenizer.operators or self.char in Tokenizer.comparators or self.char == "!":
                 self.tokenize_operator()
 
             elif self.char in Tokenizer.safe_chars:
@@ -73,6 +77,7 @@ class Tokenizer:
         operator = self.char
         self.forward()
 
+
         if (operator + self.char) in self.comparators: # some boolean operators are two-long
             self.tokens.append(Comparator(operator + self.char)) 
             self.forward() # have to go forward because this char was just used
@@ -96,9 +101,12 @@ class Tokenizer:
         if token in self.booleans:
             self.tokens.append(Boolean(token))
 
-        elif token in self.reserved or token in self.variable_declarators:
+        elif token in self.reserved:
             self.tokens.append(Reserved(token))
         
+        elif token in self.variable_declarators:
+            self.tokens.append(Variable_Declarator(token))
+
         else:
             self.tokens.append(Variable(token))
 

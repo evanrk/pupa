@@ -53,8 +53,8 @@ while True:
   tokens = Tokenizer(line).make_tokens()
   print(tokens)
 
-  # tokens_tree = Parser(tokens).parse()
-  # print(tokens_tree)
+  tokens_tree = Parser(tokens).parse()
+  print(tokens_tree)
 
-  # output = Interpreter(tokens_tree, variables).interpret()
-  # print(output)
+  output = Interpreter(tokens_tree, variables).interpret()
+  print(output)
